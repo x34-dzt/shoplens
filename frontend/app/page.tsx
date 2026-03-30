@@ -22,9 +22,9 @@ export default function DashboardPage() {
     if (!token) router.replace("/login");
   }, [router, token]);
 
-  const overview = useOverview({ enabled: !!token });
-  const topProducts = useTopProducts({ enabled: !!token });
-  const recentActivity = useRecentActivity({ enabled: !!token });
+  const overview = useOverview();
+  const topProducts = useTopProducts();
+  const recentActivity = useRecentActivity();
 
   useEffect(() => {
     if (overview.isError) toast.error("Failed to load overview data");
