@@ -1,5 +1,7 @@
 # ShopLens — Store Analytics Dashboard
 
+**Video Walkthrough:** https://youtu.be/o5T8RchsumU?si=K3HNYXgGWbDVg_GB
+
 A real-time analytics dashboard for the ShopLens multi-tenant eCommerce platform. Built with **Next.js 16**, **NestJS 11**, **PostgreSQL**, and **Drizzle ORM**.
 
 ## Setup Instructions
@@ -187,9 +189,3 @@ Press `Ctrl+C` to stop — prints a summary of total events sent.
 ## Time Spent
 
 ~3.8 hours
-
----
-
-## Video Walkthrough
-
-https://youtu.be/o5T8RchsumU?si=K3HNYXgGWbDVg_GB
