@@ -1,5 +1,5 @@
 {
-  "id": "bedb5789-1155-4818-931a-46083b694d89",
+  "id": "d9d52fc5-515f-496a-9809-b1d057d25688",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -144,6 +144,13 @@
         },
         "add_to_carts": {
           "name": "add_to_carts",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "remove_from_carts": {
+          "name": "remove_from_carts",
           "type": "bigint",
           "primaryKey": false,
           "notNull": false,

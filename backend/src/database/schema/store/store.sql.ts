@@ -2,6 +2,7 @@ import { pgTable } from 'drizzle-orm/pg-core';
 import { baseColumns } from '../base-columns';
 import { userTable } from '../user/user.sql';
 import { index, primaryKey } from 'drizzle-orm/pg-core';
+import { InferSelectModel } from 'drizzle-orm';
 
 export const storeTable = pgTable(
   'stores',
@@ -27,6 +28,7 @@ export const storeDailySummaryTable = pgTable(
     totalRevenue: pg.numeric({ precision: 12, scale: 2 }).default('0'),
     pageViews: pg.bigint({ mode: 'number' }).default(0),
     addToCarts: pg.bigint({ mode: 'number' }).default(0),
+    removeFromCarts: pg.bigint({ mode: 'number' }).default(0),
     checkoutsStarted: pg.bigint({ mode: 'number' }).default(0),
     purchases: pg.bigint({ mode: 'number' }).default(0),
   }),
@@ -52,3 +54,9 @@ export const storeProductSummaryTable = pgTable(
     index().on(t.storeId, t.totalRevenue),
   ],
 );
+
+export type Store = InferSelectModel<typeof storeTable>;
+export type StoreDailySummary = InferSelectModel<typeof storeDailySummaryTable>;
+export type StoreProductSummary = InferSelectModel<
+  typeof storeProductSummaryTable
+>;

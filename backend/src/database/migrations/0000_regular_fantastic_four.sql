@@ -13,6 +13,7 @@ CREATE TABLE "store_daily_summary" (
 	"total_revenue" numeric(12, 2) DEFAULT '0',
 	"page_views" bigint DEFAULT 0,
 	"add_to_carts" bigint DEFAULT 0,
+	"remove_from_carts" bigint DEFAULT 0,
 	"checkouts_started" bigint DEFAULT 0,
 	"purchases" bigint DEFAULT 0,
 	CONSTRAINT "store_daily_summary_store_id_date_pk" PRIMARY KEY("store_id","date")

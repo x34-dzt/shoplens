@@ -1,21 +1,21 @@
 import { Global, Logger, Module, Provider } from '@nestjs/common';
 import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
+import * as schema from './schema';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { ConfigType } from '@nestjs/config';
+import databaseConfig from '../config/database.config';
 
 export const DRIZZLE = 'DRIZZLE';
 
+export type DrizzleDB = NodePgDatabase<typeof schema>;
+
 const DrizzleProvider: Provider = {
   provide: DRIZZLE,
-  useFactory: () => {
+  inject: [databaseConfig.KEY],
+  useFactory: (config: ConfigType<typeof databaseConfig>) => {
     const logger = new Logger('DatabaseModule');
-    const connectionString = process.env.DATABASE_URL;
-    if (!connectionString) {
-      logger.error('DATABASE_URL is not provided');
-      throw new Error('DATABASE_URL is not provided');
-    }
-    const pool = new Pool({
-      connectionString,
-    });
+    const pool = new Pool({ connectionString: config.url });
     const db = drizzle(pool, { casing: 'snake_case' });
     logger.log('Connected to the postgres successfully');
     return db;
