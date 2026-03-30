@@ -15,10 +15,7 @@ export class EventsController {
 
   @Post(':storeId')
   @HttpCode(HttpStatus.CREATED)
-  async create(
-    @Param('storeId') storeId: string,
-    @Body() dto: CreateEventDto,
-  ) {
+  async create(@Param('storeId') storeId: string, @Body() dto: CreateEventDto) {
     return this.eventsService.ingest(storeId, dto);
   }
 }

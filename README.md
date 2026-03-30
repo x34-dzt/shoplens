@@ -6,7 +6,7 @@ A real-time analytics dashboard for the ShopLens multi-tenant eCommerce platform
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - pnpm
 - Docker & Docker Compose (recommended)
 
@@ -94,6 +94,7 @@ Press `Ctrl+C` to stop — prints a summary of total events sent.
 - **Decision:** Pre-aggregation at write time using two summary tables — `store_daily_summary` and `store_product_summary`.
 - **Why:** With ~10K events/minute, querying raw events with GROUP BY on every dashboard load would be too slow. Instead, summary counters are incremented in the same transaction as the raw event insert using `INSERT ... ON CONFLICT DO UPDATE` (SQL upsert with arithmetic like `total_revenue = total_revenue + new_amount`). This makes all analytics reads simple SELECTs from summary tables — O(1) regardless of event volume.
 - **Trade-offs:** Extra write per event (incrementing summary rows). But since it's in the same transaction, it's atomic and the overhead is minimal compared to the query-time benefit. Summary rows use `SELECT ... FOR UPDATE` to prevent race conditions on concurrent writes.
+- **Alternative considered:** PostgreSQL materialized views with periodic refreshes could achieve similar results, but scanning millions of raw event rows to rebuild the materialized view is database resource-intensive. Our write-time pre-aggregation distributes the cost across individual inserts instead of batching it into expensive refresh cycles, and the data is always up-to-date rather than stale until the next refresh.
 
 ### Real-time vs. Batch Processing
 
@@ -186,4 +187,4 @@ Press `Ctrl+C` to stop — prints a summary of total events sent.
 
 ## Video Walkthrough
 
-[Link to video]
+https://youtu.be/o5T8RchsumU?si=K3HNYXgGWbDVg_GB
