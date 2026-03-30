@@ -157,6 +157,11 @@ Press `Ctrl+C` to stop — prints a summary of total events sent.
 - Seed script for 30 days of demo data
 - Real-time event streaming script
 
+### Bonus Features
+
+- **Real-time updates** — dashboard auto-refreshes without manual page refresh (15s for overview/top products, 5s for recent activity) using TanStack React Query polling
+- **Performance optimizations** — pre-aggregated summary tables at write time, composite indexes on `(store_id, timestamp)` and `(store_id, event_type, timestamp)`, TanStack Query staleTime to prevent redundant API calls
+
 ---
 
 ## Known Limitations
