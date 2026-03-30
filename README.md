@@ -13,7 +13,7 @@ A real-time analytics dashboard for the Shoplens multi-tenant eCommerce platform
 ### 1. Clone and install
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/x34-dzt/shoplens.git
 cd shoplens
 
 # Backend
@@ -117,7 +117,7 @@ Press `Ctrl+C` to stop — it will print a summary of total events sent.
 | ------ | ----------------------------------- | ---- | -------------------------------------- |
 | POST   | `/api/v1/auth/register`             | No   | Register user + auto-create store      |
 | POST   | `/api/v1/auth/login`                | No   | Login, returns JWT + storeId           |
-| POST   | `/api/v1/events`                    | Yes  | Ingest an event                        |
+| POST   | `/api/v1/events/:storeId`            | No   | Ingest an event                        |
 | GET    | `/api/v1/analytics/overview`        | Yes  | Revenue, conversion rate, event counts |
 | GET    | `/api/v1/analytics/top-products`    | Yes  | Top 10 products by revenue             |
 | GET    | `/api/v1/analytics/recent-activity` | Yes  | Last 20 events                         |
