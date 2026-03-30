@@ -1,6 +1,6 @@
 # ShopLens — Store Analytics Dashboard
 
-A real-time analytics dashboard for the Shoplens multi-tenant eCommerce platform. Built with **Next.js 16**, **NestJS 11**, **PostgreSQL**, and **Drizzle ORM**.
+A real-time analytics dashboard for the ShopLens multi-tenant eCommerce platform. Built with **Next.js 16**, **NestJS 11**, **PostgreSQL**, and **Drizzle ORM**.
 
 ## Setup Instructions
 
@@ -8,9 +8,31 @@ A real-time analytics dashboard for the Shoplens multi-tenant eCommerce platform
 
 - Node.js 18+
 - pnpm
-- PostgreSQL running locally
+- Docker & Docker Compose (recommended)
 
-### 1. Clone and install
+---
+
+### Option 1 — Docker (recommended)
+
+Spin up PostgreSQL, backend, and frontend with a single command:
+
+```bash
+git clone https://github.com/x34-dzt/shoplens.git
+cd shoplens
+docker compose up --build
+```
+
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:3001`
+- Database schema is auto-pushed on backend startup
+
+Once running, create an account at `http://localhost:3000/register` and copy your **Store ID** from the navbar.
+
+---
+
+### Option 2 — Local development (no Docker)
+
+Use this if you want hot reload and faster iteration during development.
 
 ```bash
 git clone https://github.com/x34-dzt/shoplens.git
@@ -21,64 +43,56 @@ cd backend
 cp .env.example .env
 # Edit .env with your DATABASE_URL and JWT_SECRET
 pnpm install
+pnpm db:push
+pnpm start:dev
 
-# Frontend
-cd ../frontend
+# Frontend (new terminal)
+cd frontend
 cp .env.example .env
 pnpm install
+pnpm dev
 ```
 
-### 2. Database setup
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:3001`
 
-```bash
-cd backend
-pnpm db:push
-```
+> You'll need PostgreSQL running locally. Create the database first: `psql -U postgres -c "CREATE DATABASE shoplens"`, then update `DATABASE_URL` in `backend/.env` accordingly.
 
-### 3. Run the app
+---
 
-```bash
-# Backend (port 3001)
-cd backend && pnpm start:dev
+### Seed demo data
 
-# Frontend (port 3000)
-cd frontend && pnpm dev
-```
-
-### 4. Create an account & seed demo data
-
-Open `http://localhost:3000/register`, create an account, then copy your **Store ID** from the navbar.
-
-Seed 30 days of demo data:
+Once the app is running, create an account, copy your **Store ID** from the navbar, then run:
 
 ```bash
 ./seed.sh <your_store_id>
 ```
 
-The dashboard will auto-refresh with the seeded data.
+Seeds 30 days of realistic demo data. The dashboard auto-refreshes with the new data.
 
-### 5. Stream real-time events
+---
 
-Continuously send random events every 5 seconds to simulate live traffic:
+### Simulate real-time events
+
+Stream random events every 5 seconds to see the dashboard update live:
 
 ```bash
 ./real-time.sh <your_store_id>
-```
 
-Customize the interval (default is 5s):
-
-```bash
+# Custom interval (seconds)
 INTERVAL=2 ./real-time.sh <your_store_id>
 ```
 
-Press `Ctrl+C` to stop — it will print a summary of total events sent.
+Press `Ctrl+C` to stop — prints a summary of total events sent.
+
+---
 
 ## Architecture Decisions
 
 ### Data Aggregation Strategy
 
 - **Decision:** Pre-aggregation at write time using two summary tables — `store_daily_summary` and `store_product_summary`.
-- **Why:** With ~10K events/minute, querying raw events with GROUP BY on every dashboard load would be too slow. Instead, summary counters are incremented in the same transaction as the raw event insert using `INSERT ... ON CONFLICT DO UPDATE` (SQL upsert with arithmetic like `total_revenue = total_revenue + new_amount`). This makes all analytics reads simple SELECTs from summary tables O(1) regardless of event volume.
+- **Why:** With ~10K events/minute, querying raw events with GROUP BY on every dashboard load would be too slow. Instead, summary counters are incremented in the same transaction as the raw event insert using `INSERT ... ON CONFLICT DO UPDATE` (SQL upsert with arithmetic like `total_revenue = total_revenue + new_amount`). This makes all analytics reads simple SELECTs from summary tables — O(1) regardless of event volume.
 - **Trade-offs:** Extra write per event (incrementing summary rows). But since it's in the same transaction, it's atomic and the overhead is minimal compared to the query-time benefit. Summary rows use `SELECT ... FOR UPDATE` to prevent race conditions on concurrent writes.
 
 ### Real-time vs. Batch Processing
@@ -90,7 +104,7 @@ Press `Ctrl+C` to stop — it will print a summary of total events sent.
 ### Frontend Data Fetching
 
 - **Decision:** TanStack React Query with auto-refetching intervals. Each API endpoint has its own hook (`useOverview`, `useTopProducts`, `useRecentActivity`). Axios client with JWT interceptor and 401 auto-redirect.
-- **Why:** TanStack handles deduplication, stale-while-revalidate, and background updates, the dashboard refreshes silently without loading flicker. Overview and top products refresh every 15s, recent activity every 5s.
+- **Why:** TanStack handles deduplication, stale-while-revalidate, and background updates — the dashboard refreshes silently without loading flicker. Overview and top products refresh every 15s, recent activity every 5s.
 
 ### Performance Optimizations
 
@@ -99,6 +113,8 @@ Press `Ctrl+C` to stop — it will print a summary of total events sent.
 - **Index on `(store_id, total_revenue)`** for the product summary table
 - **TanStack Query staleTime (30s)** prevents redundant API calls across components
 - **ULID-based prefixed IDs** are time-sortable and human-readable without additional lookups
+
+---
 
 ## Tech Stack
 
@@ -111,16 +127,20 @@ Press `Ctrl+C` to stop — it will print a summary of total events sent.
 | Database   | PostgreSQL                                                   |
 | Auth       | JWT (bcrypt + @nestjs/jwt)                                   |
 
+---
+
 ## API Endpoints
 
 | Method | Endpoint                            | Auth | Description                            |
 | ------ | ----------------------------------- | ---- | -------------------------------------- |
 | POST   | `/api/v1/auth/register`             | No   | Register user + auto-create store      |
 | POST   | `/api/v1/auth/login`                | No   | Login, returns JWT + storeId           |
-| POST   | `/api/v1/events/:storeId`            | No   | Ingest an event                        |
+| POST   | `/api/v1/events/:storeId`           | No   | Ingest an event                        |
 | GET    | `/api/v1/analytics/overview`        | Yes  | Revenue, conversion rate, event counts |
 | GET    | `/api/v1/analytics/top-products`    | Yes  | Top 10 products by revenue             |
 | GET    | `/api/v1/analytics/recent-activity` | Yes  | Last 20 events                         |
+
+---
 
 ## Features
 
@@ -136,23 +156,33 @@ Press `Ctrl+C` to stop — it will print a summary of total events sent.
 - Seed script for 30 days of demo data
 - Real-time event streaming script
 
+---
+
 ## Known Limitations
 
 - **No date range filtering** — overview always computes from the current month
 - **Token stored in localStorage** — vulnerable to XSS (would use httpOnly cookies in production)
 - **Overview filtering is in-memory** — queries the full month's summaries and filters in JS rather than SQL date filters (acceptable trade-off for speed of development; ~30 rows/month has negligible performance impact)
+- **Single store per user** — architecture supports multi-tenancy but UI doesn't expose store switching
+- **At 100M+ events** — summary table upserts would need sharding or migration to a columnar store like ClickHouse for aggregation queries
+
+---
 
 ## What I'd Improve With More Time
 
-1. **Server-Sent Events** for real-time updates instead of polling — had the architecture planned with RxJS Subjects and NestJS `@Sse()`, but the EventSource auth limitation (no custom headers) needs a secure token-in-query-param approach
-2. **Date range filtering** — custom date pickers for the overview metrics with SQL-level date filtering
+1. **Server-Sent Events** for true real-time updates instead of polling — architecture was planned with NestJS `@Sse()` and RxJS Subjects, deprioritized due to EventSource auth limitation (no custom headers) requiring a token-in-query-param approach
+2. **Date range filtering** — custom date pickers with SQL-level filtering instead of in-memory
 3. **Database-level constraints** — unique constraint on `stores.user_id` to enforce the 1:1 user-store relationship
 4. **httpOnly cookie-based auth** — more secure than localStorage JWT
-5. **Caching layer** (Redis) for frequently accessed summary data
+5. **Redis caching layer** — for frequently accessed summary data to reduce DB load further
+
+---
 
 ## Time Spent
 
 ~3.8 hours
+
+---
 
 ## Video Walkthrough
 
