@@ -34,3 +34,12 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## !WARNING
+
+source: https://x.com/mvxvvll/status/2038797094861918332?s=20
+
+> There is an active supply chain attack on `axios@1.14.1`. This project is pinned
+> to `axios@1.14.0` and is not affected. Do not upgrade axios until a verified clean
+> version is published. Run `npm ls plain-crypto-js` to confirm it is absent from
+> your dependency tree.
